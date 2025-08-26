@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHREE SWAMINARAYAN GURUKUL INTERNATIONAL SCHOOL (HOSTEL-VDN)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    <style>
+        .rating-stars {
+            display: flex;
+            gap: 2px;
+            direction: rtl; /* Right-to-left for star rating visual */
+            justify-content: flex-end; /* Align stars to the right */
+        }
+        .rating-stars input {
+            display: none;
+        }
+        .rating-stars label {
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #d1d5db; /* Default star color */
+            transition: color 0.2s;
+        }
+        /* Highlight stars on hover */
+        .rating-stars label:hover,
+        .rating-stars label:hover ~ label {
+            color: #fbbf24; /* Yellow on hover */
+        }
+        /* Highlight selected stars */
+        .rating-stars input:checked ~ label {
+            color: #f59e0b; /* Orange for selected */
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .progress-bar {
+            transition: width 0.3s ease-in-out;
+        }
+        .chart-bar {
+            transition: height 0.5s ease-in-out;
+        }
+        /* Table styling for All Records page */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .report-table th, .report-table td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        .report-table th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .report-table tbody tr:nth-child(even) {
+            background-color: #f0f4f8;
+        }
+        .report-table tbody tr:hover {
+            background-color: #e2e8f0;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Navigation Header -->
+    <header class="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold flex items-center">
+                    <i class="fas fa-broom mr-3"></i>
+                    SHREE SWAMINARAYAN GURUKUL INTERNATIONAL SCHOOL (HOSTEL-HYD)
+                </h1>
+                <nav class="flex space-x-4">
+                    <button onclick="showPage('submission')" class="nav-btn px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-plus-circle mr-2"></i>Cleaning
+                    </button>
+                    <button onclick="showPage('maintenance')" class="nav-btn px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 transition-colors">
+                        <i class="fas fa-tools mr-2"></i>Maintenance
+                    </button>
+                    <button onclick="showPage('results')" class="nav-btn px-4 py-2 rounded-lg bg-purple-500 hover:bg-purple-600 transition-colors">
+                        <i class="fas fa-chart-bar mr-2"></i>Results
+                    </button>
+                    <button onclick="showPage('all-records')" class="nav-btn px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 transition-colors">
+                        <i class="fas fa-list-alt mr-2"></i>All Records
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page 1: Cleaning Report Submission -->
+    <div id="submission" class="page active">
+        <div class="container mx-auto px-4 py-8">
+            <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-broom text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800">Cleaning Report Submission</h2>
+                </div>
+
+                <!-- Basic Information -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-calendar-alt mr-2 text-blue-500"></i>Date
+                        </label>
+                        <input type="date" id="cleaningDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-user mr-2 text-blue-500"></i>Staff Name
+                        </label>
+                        <input type="text" id="cleaningStaffName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter staff name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-building mr-2 text-blue-500"></i>Floor
+                        </label>
+                        <select id="floorSelect" onchange="updateRoomOptions()" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Select Floor</option>
+                            <option value="1">1st Floor</option>
+                            <option value="2">2nd Floor</option>
+                            <option value="3">3rd Floor</option>
+                            <option value="4">4th Floor</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Room Selection -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-door-open mr-2 text-blue-500"></i>Room Number
+                    </label>
+                    <select id="roomSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Please select a floor first</option>
+                    </select>
+                </div>
+
+                <!-- Cleaning Rating Section -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl mb-6">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-star-half-alt mr-3 text-yellow-500"></i>
+                        Cleaning Quality Rating
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Column 1 -->
+                        <div class="space-y-4">
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Front Lobby & Door (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="lobby" id="lobby-5" value="5"><label for="lobby-5">★</label>
+                                    <input type="radio" name="lobby" id="lobby-4" value="4"><label for="lobby-4">★</label>
+                                    <input type="radio" name="lobby" id="lobby-3" value="3"><label for="lobby-3">★</label>
+                                    <input type="radio" name="lobby" id="lobby-2" value="2"><label for="lobby-2">★</label>
+                                    <input type="radio" name="lobby" id="lobby-1" value="1"><label for="lobby-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Brooming (10 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="brooming" id="brooming-10" value="10"><label for="brooming-10">★</label>
+                                    <input type="radio" name="brooming" id="brooming-8" value="8"><label for="brooming-8">★</label>
+                                    <input type="radio" name="brooming" id="brooming-6" value="6"><label for="brooming-6">★</label>
+                                    <input type="radio" name="brooming" id="brooming-4" value="4"><label for="brooming-4">★</label>
+                                    <input type="radio" name="brooming" id="brooming-2" value="2"><label for="brooming-2">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Cup (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="cup" id="cup-5" value="5"><label for="cup-5">★</label>
+                                    <input type="radio" name="cup" id="cup-4" value="4"><label for="cup-4">★</label>
+                                    <input type="radio" name="cup" id="cup-3" value="3"><label for="cup-3">★</label>
+                                    <input type="radio" name="cup" id="cup-2" value="2"><label for="cup-2">★</label>
+                                    <input type="radio" name="cup" id="cup-1" value="1"><label for="cup-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Bed and Godown (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="bed-godown" id="bed-godown-5" value="5"><label for="bed-godown-5">★</label>
+                                    <input type="radio" name="bed-godown" id="bed-godown-4" value="4"><label for="bed-godown-4">★</label>
+                                    <input type="radio" name="bed-godown" id="bed-godown-3" value="3"><label for="bed-godown-3">★</label>
+                                    <input type="radio" name="bed-godown" id="bed-godown-2" value="2"><label for="bed-godown-2">★</label>
+                                    <input type="radio" name="bed-godown" id="bed-godown-1" value="1"><label for="bed-godown-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Ceiling (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="ceiling" id="ceiling-5" value="5"><label for="ceiling-5">★</label>
+                                    <input type="radio" name="ceiling" id="ceiling-4" value="4"><label for="ceiling-4">★</label>
+                                    <input type="radio" name="ceiling" id="ceiling-3" value="3"><label for="ceiling-3">★</label>
+                                    <input type="radio" name="ceiling" id="ceiling-2" value="2"><label for="ceiling-2">★</label>
+                                    <input type="radio" name="ceiling" id="ceiling-1" value="1"><label for="ceiling-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Dustbin (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="dustbin" id="dustbin-5" value="5"><label for="dustbin-5">★</label>
+                                    <input type="radio" name="dustbin" id="dustbin-4" value="4"><label for="dustbin-4">★</label>
+                                    <input type="radio" name="dustbin" id="dustbin-3" value="3"><label for="dustbin-3">★</label>
+                                    <input type="radio" name="dustbin" id="dustbin-2" value="2"><label for="dustbin-2">★</label>
+                                    <input type="radio" name="dustbin" id="dustbin-1" value="1"><label for="dustbin-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Discipline (10 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="discipline" id="discipline-10" value="10"><label for="discipline-10">★</label>
+                                    <input type="radio" name="discipline" id="discipline-8" value="8"><label for="discipline-8">★</label>
+                                    <input type="radio" name="discipline" id="discipline-6" value="6"><label for="discipline-6">★</label>
+                                    <input type="radio" name="discipline" id="discipline-4" value="4"><label for="discipline-4">★</label>
+                                    <input type="radio" name="discipline" id="discipline-2" value="2"><label for="discipline-2">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">General Cleaning (10 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="general" id="general-10" value="10"><label for="general-10">★</label>
+                                    <input type="radio" name="general" id="general-8" value="8"><label for="general-8">★</label>
+                                    <input type="radio" name="general" id="general-6" value="6"><label for="general-6">★</label>
+                                    <input type="radio" name="general" id="general-4" value="4"><label for="general-4">★</label>
+                                    <input type="radio" name="general" id="general-2" value="2"><label for="general-2">★</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2 -->
+                        <div class="space-y-4">
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Window (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="window" id="window-5" value="5"><label for="window-5">★</label>
+                                    <input type="radio" name="window" id="window-4" value="4"><label for="window-4">★</label>
+                                    <input type="radio" name="window" id="window-3" value="3"><label for="window-3">★</label>
+                                    <input type="radio" name="window" id="window-2" value="2"><label for="window-2">★</label>
+                                    <input type="radio" name="window" id="window-1" value="1"><label for="window-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Mopping (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="mopping" id="mopping-5" value="5"><label for="mopping-5">★</label>
+                                    <input type="radio" name="mopping" id="mopping-4" value="4"><label for="mopping-4">★</label>
+                                    <input type="radio" name="mopping" id="mopping-3" value="3"><label for="mopping-3">★</label>
+                                    <input type="radio" name="mopping" id="mopping-2" value="2"><label for="mopping-2">★</label>
+                                    <input type="radio" name="mopping" id="mopping-1" value="1"><label for="mopping-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Furniture (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="furniture" id="furniture-5" value="5"><label for="furniture-5">★</label>
+                                    <input type="radio" name="furniture" id="furniture-4" value="4"><label for="furniture-4">★</label>
+                                    <input type="radio" name="furniture" id="furniture-3" value="3"><label for="furniture-3">★</label>
+                                    <input type="radio" name="furniture" id="furniture-2" value="2"><label for="furniture-2">★</label>
+                                    <input type="radio" name="furniture" id="furniture-1" value="1"><label for="furniture-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Fan (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="fan" id="fan-5" value="5"><label for="fan-5">★</label>
+                                    <input type="radio" name="fan" id="fan-4" value="4"><label for="fan-4">★</label>
+                                    <input type="radio" name="fan" id="fan-3" value="3"><label for="fan-3">★</label>
+                                    <input type="radio" name="fan" id="fan-2" value="2"><label for="fan-2">★</label>
+                                    <input type="radio" name="fan" id="fan-1" value="1"><label for="fan-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Chair (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="chair" id="chair-5" value="5"><label for="chair-5">★</label>
+                                    <input type="radio" name="chair" id="chair-4" value="4"><label for="chair-4">★</label>
+                                    <input type="radio" name="chair" id="chair-3" value="3"><label for="chair-3">★</label>
+                                    <input type="radio" name="chair" id="chair-2" value="2"><label for="chair-2">★</label>
+                                    <input type="radio" name="chair" id="chair-1" value="1"><label for="chair-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Back Lobby & Door (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="back-lobby" id="back-lobby-5" value="5"><label for="back-lobby-5">★</label>
+                                    <input type="radio" name="back-lobby" id="back-lobby-4" value="4"><label for="back-lobby-4">★</label>
+                                    <input type="radio" name="back-lobby" id="back-lobby-3" value="3"><label for="back-lobby-3">★</label>
+                                    <input type="radio" name="back-lobby" id="back-lobby-2" value="2"><label for="back-lobby-2">★</label>
+                                    <input type="radio" name="back-lobby" id="back-lobby-1" value="1"><label for="back-lobby-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Iron Rod (10 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="iron-rod" id="iron-rod-10" value="10"><label for="iron-rod-10">★</label>
+                                    <input type="radio" name="iron-rod" id="iron-rod-8" value="8"><label for="iron-rod-8">★</label>
+                                    <input type="radio" name="iron-rod" id="iron-rod-6" value="6"><label for="iron-rod-6">★</label>
+                                    <input type="radio" name="iron-rod" id="iron-rod-4" value="4"><label for="iron-rod-4">★</label>
+                                    <input type="radio" name="iron-rod" id="iron-rod-2" value="2"><label for="iron-rod-2">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Bed & Pillow (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="bed-pillow" id="bed-pillow-5" value="5"><label for="bed-pillow-5">★</label>
+                                    <input type="radio" name="bed-pillow" id="bed-pillow-4" value="4"><label for="bed-pillow-4">★</label>
+                                    <input type="radio" name="bed-pillow" id="bed-pillow-3" value="3"><label for="bed-pillow-3">★</label>
+                                    <input type="radio" name="bed-pillow" id="bed-pillow-2" value="2"><label for="bed-pillow-2">★</label>
+                                    <input type="radio" name="bed-pillow" id="bed-pillow-1" value="1"><label for="bed-pillow-1">★</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button onclick="submitCleaningReport()" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg transform hover:scale-105 transition-all duration-200">
+                        <i class="fas fa-paper-plane mr-2"></i>Submit Cleaning Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 2: Maintenance Report -->
+    <div id="maintenance" class="page">
+        <div class="container mx-auto px-4 py-8">
+            <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-tools text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800">Maintenance Report Submission</h2>
+                </div>
+
+                <!-- Basic Information -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-calendar-alt mr-2 text-green-500"></i>Date
+                        </label>
+                        <input type="date" id="maintenanceDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-user mr-2 text-green-500"></i>Technician Name
+                        </label>
+                        <input type="text" id="maintenanceTechnicianName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="Enter technician name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-building mr-2 text-green-500"></i>Floor
+                        </label>
+                        <select id="maintenanceFloorSelect" onchange="updateMaintenanceRoomOptions()" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="">Select Floor</option>
+                            <option value="1">1st Floor</option>
+                            <option value="2">2nd Floor</option>
+                            <option value="3">3rd Floor</option>
+                            <option value="4">4th Floor</option>
+                            <option value="5">5th Floor</option>
+                            <option value="6">6th Floor</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Room Selection -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-door-open mr-2 text-green-500"></i>Room Number
+                    </label>
+                    <select id="maintenanceRoomSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="">Please select a floor first</option>
+                    </select>
+                </div>
+
+                <!-- Maintenance Rating Section -->
+                <div class="bg-gradient-to-r from-green-50 to-teal-50 p-6 rounded-xl mb-6">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-wrench mr-3 text-green-500"></i>
+                        Maintenance Quality Rating
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Column 1 -->
+                        <div class="space-y-4">
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Front Gate (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="f-gate" id="f-gate-5" value="5"><label for="f-gate-5">★</label>
+                                    <input type="radio" name="f-gate" id="f-gate-4" value="4"><label for="f-gate-4">★</label>
+                                    <input type="radio" name="f-gate" id="f-gate-3" value="3"><label for="f-gate-3">★</label>
+                                    <input type="radio" name="f-gate" id="f-gate-2" value="2"><label for="f-gate-2">★</label>
+                                    <input type="radio" name="f-gate" id="f-gate-1" value="1"><label for="f-gate-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Ceiling (10 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="m-ceiling" id="m-ceiling-10" value="10"><label for="m-ceiling-10">★</label>
+                                    <input type="radio" name="m-ceiling" id="m-ceiling-8" value="8"><label for="m-ceiling-8">★</label>
+                                    <input type="radio" name="m-ceiling" id="m-ceiling-6" value="6"><label for="m-ceiling-6">★</label>
+                                    <input type="radio" name="m-ceiling" id="m-ceiling-4" value="4"><label for="m-ceiling-4">★</label>
+                                    <input type="radio" name="m-ceiling" id="m-ceiling-2" value="2"><label for="m-ceiling-2">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Cup (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="m-cup" id="m-cup-5" value="5"><label for="m-cup-5">★</label>
+                                    <input type="radio" name="m-cup" id="m-cup-4" value="4"><label for="m-cup-4">★</label>
+                                    <input type="radio" name="m-cup" id="m-cup-3" value="3"><label for="m-cup-3">★</label>
+                                    <input type="radio" name="m-cup" id="m-cup-2" value="2"><label for="m-cup-2">★</label>
+                                    <input type="radio" name="m-cup" id="m-cup-1" value="1"><label for="m-cup-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Locker (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="locker" id="locker-5" value="5"><label for="locker-5">★</label>
+                                    <input type="radio" name="locker" id="locker-4" value="4"><label for="locker-4">★</label>
+                                    <input type="radio" name="locker" id="locker-3" value="3"><label for="locker-3">★</label>
+                                    <input type="radio" name="locker" id="locker-2" value="2"><label for="locker-2">★</label>
+                                    <input type="radio" name="locker" id="locker-1" value="1"><label for="locker-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Chair (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="m-chair" id="m-chair-5" value="5"><label for="m-chair-5">★</label>
+                                    <input type="radio" name="m-chair" id="m-chair-4" value="4"><label for="m-chair-4">★</label>
+                                    <input type="radio" name="m-chair" id="m-chair-3" value="3"><label for="m-chair-3">★</label>
+                                    <input type="radio" name="m-chair" id="m-chair-2" value="2"><label for="m-chair-2">★</label>
+                                    <input type="radio" name="m-chair" id="m-chair-1" value="1"><label for="m-chair-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Urinal Tap/Pipe (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="urinal" id="urinal-5" value="5"><label for="urinal-5">★</label>
+                                    <input type="radio" name="urinal" id="urinal-4" value="4"><label for="urinal-4">★</label>
+                                    <input type="radio" name="urinal" id="urinal-3" value="3"><label for="urinal-3">★</label>
+                                    <input type="radio" name="urinal" id="urinal-2" value="2"><label for="urinal-2">★</label>
+                                    <input type="radio" name="urinal" id="urinal-1" value="1"><label for="urinal-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Flush (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="flush" id="flush-5" value="5"><label for="flush-5">★</label>
+                                    <input type="radio" name="flush" id="flush-4" value="4"><label for="flush-4">★</label>
+                                    <input type="radio" name="flush" id="flush-3" value="3"><label for="flush-3">★</label>
+                                    <input type="radio" name="flush" id="flush-2" value="2"><label for="flush-2">★</label>
+                                    <input type="radio" name="flush" id="flush-1" value="1"><label for="flush-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Speaker (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="speaker" id="speaker-5" value="5"><label for="speaker-5">★</label>
+                                    <input type="radio" name="speaker" id="speaker-4" value="4"><label for="speaker-4">★</label>
+                                    <input type="radio" name="speaker" id="speaker-3" value="3"><label for="speaker-3">★</label>
+                                    <input type="radio" name="speaker" id="speaker-2" value="2"><label for="speaker-2">★</label>
+                                    <input type="radio" name="speaker" id="speaker-1" value="1"><label for="speaker-1">★</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2 -->
+                        <div class="space-y-4">
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Back Gate (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="b-gate" id="b-gate-5" value="5"><label for="b-gate-5">★</label>
+                                    <input type="radio" name="b-gate" id="b-gate-4" value="4"><label for="b-gate-4">★</label>
+                                    <input type="radio" name="b-gate" id="b-gate-3" value="3"><label for="b-gate-3">★</label>
+                                    <input type="radio" name="b-gate" id="b-gate-2" value="2"><label for="b-gate-2">★</label>
+                                    <input type="radio" name="b-gate" id="b-gate-1" value="1"><label for="b-gate-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Front Window (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="f-window" id="f-window-5" value="5"><label for="f-window-5">★</label>
+                                    <input type="radio" name="f-window" id="f-window-4" value="4"><label for="f-window-4">★</label>
+                                    <input type="radio" name="f-window" id="f-window-3" value="3"><label for="f-window-3">★</label>
+                                    <input type="radio" name="f-window" id="f-window-2" value="2"><label for="f-window-2">★</label>
+                                    <input type="radio" name="f-window" id="f-window-1" value="1"><label for="f-window-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Handle (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="handle" id="handle-5" value="5"><label for="handle-5">★</label>
+                                    <input type="radio" name="handle" id="handle-4" value="4"><label for="handle-4">★</label>
+                                    <input type="radio" name="handle" id="handle-3" value="3"><label for="handle-3">★</label>
+                                    <input type="radio" name="handle" id="handle-2" value="2"><label for="handle-2">★</label>
+                                    <input type="radio" name="handle" id="handle-1" value="1"><label for="handle-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Godown (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="godown" id="godown-5" value="5"><label for="godown-5">★</label>
+                                    <input type="radio" name="godown" id="godown-4" value="4"><label for="godown-4">★</label>
+                                    <input type="radio" name="godown" id="godown-3" value="3"><label for="godown-3">★</label>
+                                    <input type="radio" name="godown" id="godown-2" value="2"><label for="godown-2">★</label>
+                                    <input type="radio" name="godown" id="godown-1" value="1"><label for="godown-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Basin Tap (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="basin-tap" id="basin-tap-5" value="5"><label for="basin-tap-5">★</label>
+                                    <input type="radio" name="basin-tap" id="basin-tap-4" value="4"><label for="basin-tap-4">★</label>
+                                    <input type="radio" name="basin-tap" id="basin-tap-3" value="3"><label for="basin-tap-3">★</label>
+                                    <input type="radio" name="basin-tap" id="basin-tap-2" value="2"><label for="basin-tap-2">★</label>
+                                    <input type="radio" name="basin-tap" id="basin-tap-1" value="1"><label for="basin-tap-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Pressure (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="pressure" id="pressure-5" value="5"><label for="pressure-5">★</label>
+                                    <input type="radio" name="pressure" id="pressure-4" value="4"><label for="pressure-4">★</label>
+                                    <input type="radio" name="pressure" id="pressure-3" value="3"><label for="pressure-3">★</label>
+                                    <input type="radio" name="pressure" id="pressure-2" value="2"><label for="pressure-2">★</label>
+                                    <input type="radio" name="pressure" id="pressure-1" value="1"><label for="pressure-1">★</label>
+                                </div>
+                            </div>
+
+                            <div class="rating-item bg-white p-4 rounded-lg shadow-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Weekly Observation (5 points)</label>
+                                <div class="rating-stars">
+                                    <input type="radio" name="weekly-obs" id="weekly-obs-5" value="5"><label for="weekly-obs-5">★</label>
+                                    <input type="radio" name="weekly-obs" id="weekly-obs-4" value="4"><label for="weekly-obs-4">★</label>
+                                    <input type="radio" name="weekly-obs" id="weekly-obs-3" value="3"><label for="weekly-obs-3">★</label>
+                                    <input type="radio" name="weekly-obs" id="weekly-obs-2" value="2"><label for="weekly-obs-2">★</label>
+                                    <input type="radio" name="weekly-obs" id="weekly-obs-1" value="1"><label for="weekly-obs-1">★</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button onclick="submitMaintenanceReport()" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg transform hover:scale-105 transition-all duration-200">
+                        <i class="fas fa-paper-plane mr-2"></i>Submit Maintenance Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 3: Results -->
+    <div id="results" class="page">
+        <div class="container mx-auto px-4 py-8">
+            <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-chart-bar text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800">Report Results</h2>
+                </div>
+
+                <!-- Filter Options -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-building mr-2 text-purple-500"></i>Floor
+                        </label>
+                        <select id="resultsFloorSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">All Floors</option>
+                            <option value="1">1st Floor</option>
+                            <option value="2">2nd Floor</option>
+                            <option value="3">3rd Floor</option>
+                            <option value="4">4th Floor</option>
+                            <option value="5">5th Floor</option>
+                            <option value="6">6th Floor</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-calendar-alt mr-2 text-purple-500"></i>Date
+                        </label>
+                        <input type="date" id="resultsDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-filter mr-2 text-purple-500"></i>Report Type
+                        </label>
+                        <select id="reportTypeSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="cleaning">Cleaning Report</option>
+                            <option value="maintenance">Maintenance Report</option>
+                            <option value="overall">Overall Report</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="text-center mb-8">
+                    <button onclick="generateResults()" class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg transform hover:scale-105 transition-all duration-200">
+                        <i class="fas fa-chart-line mr-2"></i>Generate Results
+                    </button>
+                </div>
+
+                <!-- Results Display Area -->
+                <div id="resultsDisplay" class="space-y-8">
+                    <!-- Top 3 Rooms -->
+                    <div class="bg-blue-50 p-6 rounded-xl shadow-md">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-trophy mr-3 text-yellow-500"></i>Top 3 Rooms
+                        </h3>
+                        <div id="topRoomsList" class="space-y-2">
+                            <p class="text-gray-600">No data to display. Generate results first.</p>
+                        </div>
+                    </div>
+
+                    <!-- Last 2 Rooms -->
+                    <div class="bg-red-50 p-6 rounded-xl shadow-md">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-exclamation-triangle mr-3 text-red-500"></i>Last 2 Rooms
+                        </h3>
+                        <div id="lastRoomsList" class="space-y-2">
+                            <p class="text-gray-600">No data to display. Generate results first.</p>
+                        </div>
+                    </div>
+
+                    <!-- Floor-wise Graph (Placeholder) -->
+                    <div class="bg-gray-50 p-6 rounded-xl shadow-md">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-chart-area mr-3 text-blue-500"></i>Floor-wise Performance
+                        </h3>
+                        <div class="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
+                            <p>Graph will be displayed here (e.g., using Chart.js)</p>
+                        </div>
+                    </div>
+
+                    <!-- Overall Graph (Placeholder) -->
+                    <div class="bg-gray-50 p-6 rounded-xl shadow-md">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-chart-pie mr-3 text-green-500"></i>Overall Performance
+                        </h3>
+                        <div class="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
+                            <p>Overall graph will be displayed here (e.g., using Chart.js)</p>
+                        </div>
+                    </div>
+
+                    <!-- Frequent Top/Last Rooms (Placeholder) -->
+                    <div class="bg-yellow-50 p-6 rounded-xl shadow-md">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-history mr-3 text-yellow-600"></i>Frequent Performers
+                        </h3>
+                        <div id="frequentPerformersList" class="space-y-2">
+                            <p class="text-gray-600">Rooms frequently in top 3 or last 2 will be listed here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 4: All Records -->
+    <div id="all-records" class="page">
+        <div class="container mx-auto px-4 py-8">
+            <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-list-alt text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800">All Records</h2>
+                </div>
+
+                <!-- Filter Options for All Records -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-building mr-2 text-orange-500"></i>Floor
+                        </label>
+                        <select id="allRecordsFloorSelect" onchange="updateAllRecordsRoomOptions()" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                            <option value="">All Floors</option>
+                            <option value="1">1st Floor</option>
+                            <option value="2">2nd Floor</option>
+                            <option value="3">3rd Floor</option>
+                            <option value="4">4th Floor</option>
+                            <option value="5">5th Floor</option>
+                            <option value="6">6th Floor</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-door-open mr-2 text-orange-500"></i>Room Number
+                        </label>
+                        <select id="allRecordsRoomSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                            <option value="">All Rooms</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-filter mr-2 text-orange-500"></i>Report Type
+                        </label>
+                        <select id="allRecordsReportTypeSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                            <option value="all">All Types</option>
+                            <option value="cleaning">Cleaning Report</option>
+                            <option value="maintenance">Maintenance Report</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="text-center mb-8">
+                    <button onclick="displayAllRecords()" class="bg-gradient-to-r from-orange-500 to-yellow-600 hover:from-orange-600 hover:to-yellow-700 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg transform hover:scale-105 transition-all duration-200">
+                        <i class="fas fa-search mr-2"></i>Show Records
+                    </button>
+                </div>
+
+                <!-- All Records Display Area -->
+                <div id="allRecordsDisplay" class="overflow-x-auto">
+                    <p class="text-gray-600 text-center">Select filters and click "Show Records" to view data.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAF-GZlWe7PG7Sq05_0IVATHKon4FNFY8A",
+  authDomain: "cleaning-maintanence-system.firebaseapp.com",
+  projectId: "cleaning-maintanence-system",
+  storageBucket: "cleaning-maintanence-system.firebasestorage.app",
+  messagingSenderId: "1035141809305",
+  appId: "1:1035141809305:web:c8e49841fa71f141232408",
+  measurementId: "G-QBQLKD02QP"
+};
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Function to show/hide pages
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            // If navigating to results, generate them
+            if (pageId === 'results') {
+                generateResults();
+            } else if (pageId === 'all-records') {
+                // Optionally, trigger displayAllRecords on page load for this section
+                // displayAllRecords(); // Uncomment if you want it to load automatically
+            }
+        }
+
+        // Function to update room options based on floor selection for Cleaning Report
+        function updateRoomOptions() {
+            const floorSelect = document.getElementById('floorSelect');
+            const roomSelect = document.getElementById('roomSelect');
+            const selectedFloor = floorSelect.value;
+
+            roomSelect.innerHTML = '<option value="">Please select a floor first</option>'; // Reset rooms
+
+            if (selectedFloor) {
+                for (let i = 1; i <= 18; i++) {
+                    const roomNumber = parseInt(selectedFloor) * 100 + i;
+                    const option = document.createElement('option');
+                    option.value = roomNumber;
+                    option.textContent = roomNumber;
+                    roomSelect.appendChild(option);
+                }
+            }
+        }
+
+        // Function to update room options based on floor selection for Maintenance Report
+        function updateMaintenanceRoomOptions() {
+            const floorSelect = document.getElementById('maintenanceFloorSelect');
+            const roomSelect = document.getElementById('maintenanceRoomSelect');
+            const selectedFloor = floorSelect.value;
+
+            roomSelect.innerHTML = '<option value="">Please select a floor first</option>'; // Reset rooms
+
+            if (selectedFloor) {
+                for (let i = 1; i <= 18; i++) {
+                    const roomNumber = parseInt(selectedFloor) * 100 + i;
+                    const option = document.createElement('option');
+                    option.value = roomNumber;
+                    option.textContent = roomNumber;
+                    roomSelect.appendChild(option);
+                }
+            }
+        }
+
+        // Function to update room options for All Records page
+        function updateAllRecordsRoomOptions() {
+            const floorSelect = document.getElementById('allRecordsFloorSelect');
+            const roomSelect = document.getElementById('allRecordsRoomSelect');
+            const selectedFloor = floorSelect.value;
+
+            roomSelect.innerHTML = '<option value="">All Rooms</option>'; // Reset rooms, include "All Rooms" option
+
+            if (selectedFloor) {
+                for (let i = 1; i <= 18; i++) {
+                    const roomNumber = parseInt(selectedFloor) * 100 + i;
+                    const option = document.createElement('option');
+                    option.value = roomNumber;
+                    option.textContent = roomNumber;
+                    roomSelect.appendChild(option);
+                }
+            }
+        }
+
+        // Function to clear all radio button selections within a given parent element
+        function clearRadioSelections(parentElement) {
+            const radioButtons = parentElement.querySelectorAll('input[type="radio"]');
+            radioButtons.forEach(radio => {
+                radio.checked = false;
+            });
+        }
+
+        // Helper to get selected radio value
+        function getSelectedRadioValue(name) {
+            const radios = document.getElementsByName(name);
+            for (let i = 0; i < radios.length; i++) {
+                if (radios[i].checked) {
+                    return parseInt(radios[i].value);
+                }
+            }
+            return 0; // Return 0 if no option is selected
+        }
+
+        // Placeholder for submitting cleaning report
+        async function submitCleaningReport() {
+            const date = document.getElementById('cleaningDate').value;
+            const staffName = document.getElementById('cleaningStaffName').value;
+            const floor = document.getElementById('floorSelect').value;
+            const room = document.getElementById('roomSelect').value;
+
+            if (!date || !staffName || !floor || !room) {
+                alert('Please fill in all basic information fields.');
+                return;
+            }
+
+            // Collect cleaning ratings
+            const cleaningRatings = {
+                lobby: getSelectedRadioValue('lobby'),
+                window: getSelectedRadioValue('window'),
+                brooming: getSelectedRadioValue('brooming'),
+                mopping: getSelectedRadioValue('mopping'),
+                cup: getSelectedRadioValue('cup'),
+                furniture: getSelectedRadioValue('furniture'),
+                bedGodown: getSelectedRadioValue('bed-godown'),
+                fan: getSelectedRadioValue('fan'),
+                ceiling: getSelectedRadioValue('ceiling'),
+                chair: getSelectedRadioValue('chair'),
+                dustbin: getSelectedRadioValue('dustbin'),
+                backLobby: getSelectedRadioValue('back-lobby'),
+                discipline: getSelectedRadioValue('discipline'),
+                ironRod: getSelectedRadioValue('iron-rod'),
+                generalCleaning: getSelectedRadioValue('general'),
+                bedPillow: getSelectedRadioValue('bed-pillow')
+            };
+
+            // Calculate total cleaning score
+            let totalCleaningScore = 0;
+            for (const key in cleaningRatings) {
+                totalCleaningScore += cleaningRatings[key];
+            }
+
+            const reportData = {
+                type: 'cleaning',
+                date: date,
+                staffName: staffName,
+                floor: parseInt(floor),
+                room: parseInt(room),
+                ratings: cleaningRatings,
+                totalScore: totalCleaningScore,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            try {
+                await database.ref('cleaningReports').push(reportData);
+                alert('JAY SAMINARAYAN-THANK YOU'); // Display "Good!" message
+
+                // Clear form fields after submission
+                document.getElementById('cleaningDate').value = '';
+                document.getElementById('cleaningStaffName').value = '';
+                document.getElementById('floorSelect').value = ''; // Reset floor dropdown
+                document.getElementById('roomSelect').innerHTML = '<option value="">Please select a floor first</option>'; // Reset room dropdown
+                
+                // Clear all cleaning rating selections
+                const cleaningRatingSection = document.querySelector('#submission .bg-gradient-to-r');
+                clearRadioSelections(cleaningRatingSection);
+            } catch (error) {
+                console.error("Error submitting cleaning report:", error);
+                alert("Failed to submit cleaning report. Please try again.");
+            }
+        }
+
+        // Placeholder for submitting maintenance report
+        async function submitMaintenanceReport() {
+            const date = document.getElementById('maintenanceDate').value;
+            const technicianName = document.getElementById('maintenanceTechnicianName').value;
+            const floor = document.getElementById('maintenanceFloorSelect').value;
+            const room = document.getElementById('maintenanceRoomSelect').value;
+
+            if (!date || !technicianName || !floor || !room) {
+                alert('Please fill in all basic information fields.');
+                return;
+            }
+
+            // Collect maintenance ratings
+            const maintenanceRatings = {
+                frontGate: getSelectedRadioValue('f-gate'),
+                backGate: getSelectedRadioValue('b-gate'),
+                ceiling: getSelectedRadioValue('m-ceiling'),
+                frontWindow: getSelectedRadioValue('f-window'),
+                cup: getSelectedRadioValue('m-cup'),
+                handle: getSelectedRadioValue('handle'),
+                locker: getSelectedRadioValue('locker'),
+                godown: getSelectedRadioValue('godown'),
+                chair: getSelectedRadioValue('m-chair'),
+                basinTap: getSelectedRadioValue('basin-tap'),
+                urinalTapPipe: getSelectedRadioValue('urinal'),
+                flush: getSelectedRadioValue('flush'),
+                pressure: getSelectedRadioValue('pressure'),
+                speaker: getSelectedRadioValue('speaker'),
+                weeklyObservation: getSelectedRadioValue('weekly-obs')
+            };
+
+            // Calculate total maintenance score
+            let totalMaintenanceScore = 0;
+            for (const key in maintenanceRatings) {
+                totalMaintenanceScore += maintenanceRatings[key];
+            }
+
+            const reportData = {
+                type: 'maintenance',
+                date: date,
+                technicianName: technicianName,
+                floor: parseInt(floor),
+                room: parseInt(room),
+                ratings: maintenanceRatings,
+                totalScore: totalMaintenanceScore,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            try {
+                await database.ref('maintenanceReports').push(reportData);
+                alert('Good!'); // Display "Good!" message
+
+                // Clear form fields after submission
+                document.getElementById('maintenanceDate').value = '';
+                document.getElementById('maintenanceTechnicianName').value = '';
+                document.getElementById('maintenanceFloorSelect').value = ''; // Reset floor dropdown
+                document.getElementById('maintenanceRoomSelect').innerHTML = '<option value="">Please select a floor first</option>'; // Reset room dropdown
+
+                // Clear all maintenance rating selections
+                const maintenanceRatingSection = document.querySelector('#maintenance .bg-gradient-to-r');
+                clearRadioSelections(maintenanceRatingSection);
+            } catch (error) {
+                console.error("Error submitting maintenance report:", error);
+                alert("Failed to submit maintenance report. Please try again.");
+            }
+        }
+
+        // Function to fetch and generate results (existing function)
+        async function generateResults() {
+            const selectedFloor = document.getElementById('resultsFloorSelect').value;
+            const selectedDate = document.getElementById('resultsDate').value;
+            const reportType = document.getElementById('reportTypeSelect').value;
+
+            console.log(`Generating results for Floor: ${selectedFloor || 'All'}, Date: ${selectedDate || 'All'}, Type: ${reportType}`);
+
+            let allReports = [];
+
+            try {
+                // Fetch cleaning reports
+                const cleaningSnapshot = await database.ref('cleaningReports').once('value');
+                cleaningSnapshot.forEach(childSnapshot => {
+                    allReports.push(childSnapshot.val());
+                });
+
+                // Fetch maintenance reports
+                const maintenanceSnapshot = await database.ref('maintenanceReports').once('value');
+                maintenanceSnapshot.forEach(childSnapshot => {
+                    allReports.push(childSnapshot.val());
+                });
+
+                let filteredResults = allReports.filter(report => {
+                    let matchesFloor = true;
+                    if (selectedFloor) {
+                        matchesFloor = report.floor == parseInt(selectedFloor);
+                    }
+
+                    let matchesDate = true;
+                    if (selectedDate) {
+                        matchesDate = report.date === selectedDate;
+                    }
+                    return matchesFloor && matchesDate;
+                });
+
+                // Aggregate scores by room for the selected report type
+                const roomScores = {}; // { 'roomNumber': { cleaningScore: X, maintenanceScore: Y, count: Z } }
+
+                filteredResults.forEach(report => {
+                    const room = report.room;
+                    if (!roomScores[room]) {
+                        roomScores[room] = { cleaningScoreSum: 0, cleaningCount: 0, maintenanceScoreSum: 0, maintenanceCount: 0 };
+                    }
+
+                    if (report.type === 'cleaning') {
+                        roomScores[room].cleaningScoreSum += report.totalScore;
+                        roomScores[room].cleaningCount++;
+                    } else if (report.type === 'maintenance') {
+                        roomScores[room].maintenanceScoreSum += report.totalScore;
+                        roomScores[room].maintenanceCount++;
+                    }
+                });
+
+                let scoredResults = [];
+                for (const room in roomScores) {
+                    const data = roomScores[room];
+                    let score = 0;
+                    let validScore = false;
+
+                    if (reportType === 'cleaning' && data.cleaningCount > 0) {
+                        score = data.cleaningScoreSum / data.cleaningCount;
+                        validScore = true;
+                    } else if (reportType === 'maintenance' && data.maintenanceCount > 0) {
+                        score = data.maintenanceScoreSum / data.maintenanceCount;
+                        validScore = true;
+                    } else if (reportType === 'overall') {
+                        let combinedScoreSum = data.cleaningScoreSum + data.maintenanceScoreSum;
+                        let combinedCount = data.cleaningCount + data.maintenanceCount;
+                        if (combinedCount > 0) {
+                            score = combinedScoreSum / combinedCount;
+                            validScore = true;
+                        }
+                    }
+
+                    if (validScore) {
+                        scoredResults.push({ room: room, score: score });
+                    }
+                }
+
+                // Sort results for top/last
+                scoredResults.sort((a, b) => b.score - a.score); // Descending order
+
+                // Display Top 3 Rooms
+                const topRoomsList = document.getElementById('topRoomsList');
+                topRoomsList.innerHTML = '';
+                if (scoredResults.length > 0) {
+                    scoredResults.slice(0, 3).forEach((item, index) => {
+                        topRoomsList.innerHTML += `<p class="text-lg font-medium">#${index + 1}: Room ${item.room} - Score: ${item.score.toFixed(1)}</p>`;
+                    });
+                } else {
+                    topRoomsList.innerHTML = '<p class="text-gray-600">No data for Top Rooms.</p>';
+                }
+
+                // Display Last 2 Rooms
+                const lastRoomsList = document.getElementById('lastRoomsList');
+                lastRoomsList.innerHTML = '';
+                if (scoredResults.length > 0) {
+                    // Ensure we don't try to get more elements than available if less than 2
+                    const startIndex = Math.max(0, scoredResults.length - 2);
+                    scoredResults.slice(startIndex).reverse().forEach((item, index) => {
+                        lastRoomsList.innerHTML += `<p class="text-lg font-medium">#${scoredResults.length - (scoredResults.length - startIndex) + index + 1}: Room ${item.room} - Score: ${item.score.toFixed(1)}</p>`;
+                    });
+                } else {
+                    lastRoomsList.innerHTML = '<p class="text-gray-600">No data for Last Rooms.</p>';
+                }
+
+                // Placeholder for graph updates and frequent performers
+                document.querySelector('#resultsDisplay .bg-gray-200 p').textContent = 'Graph data updated based on filters. (Actual graph rendering requires a library like Chart.js)';
+                document.getElementById('frequentPerformersList').innerHTML = '<p class="text-gray-600">Logic for frequent performers would go here, requiring historical data analysis from Firebase.</p>';
+
+            } catch (error) {
+                console.error("Error fetching or generating results:", error);
+                alert("Failed to load results. Please check console for details.");
+            }
+        }
+
+        // New function to display all records
+        async function displayAllRecords() {
+            const selectedFloor = document.getElementById('allRecordsFloorSelect').value;
+            const selectedRoom = document.getElementById('allRecordsRoomSelect').value;
+            const reportType = document.getElementById('allRecordsReportTypeSelect').value;
+            const allRecordsDisplay = document.getElementById('allRecordsDisplay');
+
+            allRecordsDisplay.innerHTML = '<p class="text-gray-600 text-center">Loading records...</p>';
+
+            let allReports = [];
+
+            try {
+                if (reportType === 'all' || reportType === 'cleaning') {
+                    const cleaningSnapshot = await database.ref('cleaningReports').once('value');
+                    cleaningSnapshot.forEach(childSnapshot => {
+                        allReports.push({ id: childSnapshot.key, ...childSnapshot.val() });
+                    });
+                }
+
+                if (reportType === 'all' || reportType === 'maintenance') {
+                    const maintenanceSnapshot = await database.ref('maintenanceReports').once('value');
+                    maintenanceSnapshot.forEach(childSnapshot => {
+                        allReports.push({ id: childSnapshot.key, ...childSnapshot.val() });
+                    });
+                }
+
+                let filteredRecords = allReports.filter(report => {
+                    let matchesFloor = true;
+                    if (selectedFloor) {
+                        matchesFloor = report.floor == parseInt(selectedFloor);
+                    }
+
+                    let matchesRoom = true;
+                    if (selectedRoom) {
+                        matchesRoom = report.room == parseInt(selectedRoom);
+                    }
+                    return matchesFloor && matchesRoom;
+                });
+
+                if (filteredRecords.length === 0) {
+                    allRecordsDisplay.innerHTML = '<p class="text-gray-600 text-center">No records found for the selected filters.</p>';
+                    return;
+                }
+
+                // Sort records by timestamp (most recent first)
+                filteredRecords.sort((a, b) => b.timestamp - a.timestamp);
+
+                let tableHtml = `
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Floor</th>
+                                <th>Room</th>
+                                <th>Staff/Technician</th>
+                                <th>Total Score</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                filteredRecords.forEach(record => {
+                    const name = record.type === 'cleaning' ? record.staffName : record.technicianName;
+                    tableHtml += `
+                        <tr>
+                            <td>${record.type.charAt(0).toUpperCase() + record.type.slice(1)}</td>
+                            <td>${record.date}</td>
+                            <td>${record.floor}</td>
+                            <td>${record.room}</td>
+                            <td>${name}</td>
+                            <td>${record.totalScore}</td>
+                            <td><button onclick="showRecordDetails('${record.id}', '${record.type}')" class="text-blue-600 hover:underline">View</button></td>
+                        </tr>
+                    `;
+                });
+
+                tableHtml += `
+                        </tbody>
+                    </table>
+                `;
+                allRecordsDisplay.innerHTML = tableHtml;
+
+            } catch (error) {
+                console.error("Error fetching all records:", error);
+                allRecordsDisplay.innerHTML = '<p class="text-red-500 text-center">Failed to load records. Please try again.</p>';
+            }
+        }
+
+        // Function to show detailed record in a modal or new section
+        async function showRecordDetails(recordId, recordType) {
+            let recordRef;
+            if (recordType === 'cleaning') {
+                recordRef = database.ref('cleaningReports/' + recordId);
+            } else if (recordType === 'maintenance') {
+                recordRef = database.ref('maintenanceReports/' + recordId);
+            } else {
+                alert('Unknown record type.');
+                return;
+            }
+
+            try {
+                const snapshot = await recordRef.once('value');
+                const record = snapshot.val();
+
+                if (!record) {
+                    alert('Record not found.');
+                    return;
+                }
+
+                let detailsHtml = `
+                    <div class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 p-4">
+                        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl relative">
+                            <button onclick="document.getElementById('recordDetailsModal').remove()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+                            <h3 class="text-2xl font-bold mb-4">${record.type.charAt(0).toUpperCase() + record.type.slice(1)} Report Details</h3>
+                            <p><strong>Date:</strong> ${record.date}</p>
+                            <p><strong>Floor:</strong> ${record.floor}</p>
+                            <p><strong>Room:</strong> ${record.room}</p>
+                            <p><strong>${record.type === 'cleaning' ? 'Staff Name' : 'Technician Name'}:</strong> ${record.type === 'cleaning' ? record.staffName : record.technicianName}</p>
+                            <p><strong>Total Score:</strong> ${record.totalScore}</p>
+                            <h4 class="text-xl font-semibold mt-4 mb-2">Ratings:</h4>
+                            <ul class="list-disc list-inside space-y-1">
+                `;
+
+                for (const key in record.ratings) {
+                    // Format key for display (e.g., "bedGodown" to "Bed & Godown")
+                    const formattedKey = key.replace(/([A-Z])/g, ' \$1').replace(/-/g, ' ').replace(/^(.)|\s(.)/g, c => c.toUpperCase());
+                    detailsHtml += `<li><strong>${formattedKey}:</strong> ${record.ratings[key]} points</li>`;
+                }
+
+                detailsHtml += `
+                            </ul>
+                        </div>
+                    </div>
+                `;
+
+                const modalDiv = document.createElement('div');
+                modalDiv.id = 'recordDetailsModal';
+                modalDiv.innerHTML = detailsHtml;
+                document.body.appendChild(modalDiv);
+
+            } catch (error) {
+                console.error("Error fetching record details:", error);
+                alert("Failed to load record details.");
+            }
+        }
+
+
+        // Initialize page on load
+        document.addEventListener('DOMContentLoaded', () => {
+            showPage('submission'); // Show the submission page by default
+        });
+    </script>
+</body>
+</html>
