@@ -765,7 +765,7 @@ const firebaseConfig = {
             roomSelect.innerHTML = '<option value="">Please select a floor first</option>'; // Reset rooms
 
             if (selectedFloor) {
-                for (let i = 1; i <= 18; i++) {
+                for (let i = 1; i <= 19; i++) {
                     const roomNumber = parseInt(selectedFloor) * 100 + i;
                     const option = document.createElement('option');
                     option.value = roomNumber;
@@ -784,7 +784,7 @@ const firebaseConfig = {
             roomSelect.innerHTML = '<option value="">Please select a floor first</option>'; // Reset rooms
 
             if (selectedFloor) {
-                for (let i = 1; i <= 18; i++) {
+                for (let i = 1; i <= 19; i++) {
                     const roomNumber = parseInt(selectedFloor) * 100 + i;
                     const option = document.createElement('option');
                     option.value = roomNumber;
@@ -803,7 +803,7 @@ const firebaseConfig = {
             roomSelect.innerHTML = '<option value="">All Rooms</option>'; // Reset rooms, include "All Rooms" option
 
             if (selectedFloor) {
-                for (let i = 1; i <= 18; i++) {
+                for (let i = 1; i <= 19; i++) {
                     const roomNumber = parseInt(selectedFloor) * 100 + i;
                     const option = document.createElement('option');
                     option.value = roomNumber;
